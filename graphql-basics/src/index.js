@@ -105,34 +105,30 @@ const resolvers = {
   },
   Mutation: {
     createUser(parent, args, ctx, info) {
-      const { name, email, age } = args;
+      const { email } = args;
       const emailTaken = users.some((user) => user.email === email);
       if (emailTaken) throw new Error('Email is taken');
       const user = {
         id: uuidv4(),
-        name,
-        email,
-        age,
+        ...args,
       };
       users.push(user);
       return user;
     },
     createPost(parent, args, ctx, info) {
-      const { title, body, author } = args;
+      const { author } = args;
       const userExists = users.some((user) => user.id === author);
       if (!userExists) throw new Error('User not found');
       const post = {
         id: uuidv4(),
         published: false,
-        title,
-        body,
-        author,
+        ...args,
       };
       posts.push(post);
       return post;
     },
     createComment(parent, args, ctx, info) {
-      const { text, author, post } = args;
+      const { author, post } = args;
       const userExists = users.some((user) => user.id === author);
       if (!userExists) throw new Error('User not found');
       const postExists = posts.some(
@@ -141,9 +137,7 @@ const resolvers = {
       if (!postExists) throw new Error('Post not found');
       const comment = {
         id: uuidv4(),
-        text,
-        post,
-        author,
+        ...args,
       };
       comments.push(comment);
       return comment;
