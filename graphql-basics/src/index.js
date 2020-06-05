@@ -40,9 +40,27 @@ const typeDefs = `
   }
 
   type Mutation {
-    createUser(name:String!,email:String!,age:Int): User!
-    createPost(title:String!,body:String!,author:ID!):Post!
-    createComment(text:String!,author:ID!, post:ID!):Comment!
+    createUser(data: CreateUserInput): User!
+    createPost(data: CreatePostInput):Post!
+    createComment(data: CreateCommentInput):Comment!
+  }
+
+  input CreateUserInput {
+    name: String!
+    email: String!
+    age: Int
+  }
+
+  input CreatePostInput {
+    title:String!
+    body:String!
+    author:ID!
+  }
+
+  input CreateCommentInput {
+    text:String!
+    author:ID!
+    post:ID!
   }
 
   type User {
@@ -105,30 +123,30 @@ const resolvers = {
   },
   Mutation: {
     createUser(parent, args, ctx, info) {
-      const { email } = args;
+      const { email } = args.data;
       const emailTaken = users.some((user) => user.email === email);
       if (emailTaken) throw new Error('Email is taken');
       const user = {
         id: uuidv4(),
-        ...args,
+        ...args.data,
       };
       users.push(user);
       return user;
     },
     createPost(parent, args, ctx, info) {
-      const { author } = args;
+      const { author } = args.data;
       const userExists = users.some((user) => user.id === author);
       if (!userExists) throw new Error('User not found');
       const post = {
         id: uuidv4(),
         published: false,
-        ...args,
+        ...args.data,
       };
       posts.push(post);
       return post;
     },
     createComment(parent, args, ctx, info) {
-      const { author, post } = args;
+      const { author, post } = args.data;
       const userExists = users.some((user) => user.id === author);
       if (!userExists) throw new Error('User not found');
       const postExists = posts.some(
@@ -137,7 +155,7 @@ const resolvers = {
       if (!postExists) throw new Error('Post not found');
       const comment = {
         id: uuidv4(),
-        ...args,
+        ...args.data,
       };
       comments.push(comment);
       return comment;
