@@ -12,45 +12,54 @@ import { GraphQLServer } from 'graphql-yoga';
 // Type definitions
 const typeDefs = `
   type Query {
-    hello: String!
-    location: String!
-    bio: String!
+    me: User
+    post: Post
+    greeting(name: String!, position: String): String!
+    add(num1: Float!, num2:Float!): Float!
+  }
 
+  type User {
     id: ID!
     name: String!
-    age: Int!
-    employed: Boolean!
-    gpa: Float
+    email: String!
+    age: Int
+  }
+
+  type Post {
+    id: ID!
+    title: String!
+    body: String!
+    published: Boolean!
   }
 `;
 
 // Resolvers
 const resolvers = {
   Query: {
-    hello() {
-      return 'This is a query';
+    greeting(parent, args, ctx, info) {
+      return `Hello ${args.name} you are ${
+        args.position ? 'a ' + args.position : 'nothing.'
+      }`;
     },
-    location() {
-      return 'Quito';
+    me() {
+      return {
+        id: 'abc123',
+        name: 'Luz',
+        email: 'luz@example.com',
+        age: 33,
+      };
     },
-    bio() {
-      return 'about me';
+    post() {
+      return {
+        id: '12341234',
+        title: 'The title',
+        body: 'Body',
+        published: true,
+      };
     },
-
-    id() {
-      return 'abc123';
-    },
-    name() {
-      return 'Some new name';
-    },
-    age() {
-      return 33;
-    },
-    employed() {
-      return true;
-    },
-    gpa() {
-      return 3.5;
+    add(parent, args, ctx, info) {
+      const { num1, num2 } = args;
+      return num1 + num2;
     },
   },
 };
