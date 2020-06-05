@@ -15,7 +15,8 @@ const typeDefs = `
     me: User
     post: Post
     greeting(name: String!, position: String): String!
-    add(num1: Float!, num2:Float!): Float!
+    add(numbers:[Float!]!): Float!
+    grades:[Int ]!
   }
 
   type User {
@@ -58,8 +59,10 @@ const resolvers = {
       };
     },
     add(parent, args, ctx, info) {
-      const { num1, num2 } = args;
-      return num1 + num2;
+      return args.numbers.reduce((acc, current) => acc + current, 0);
+    },
+    grades(parent, args, ctx, info) {
+      return [99, 80, 93];
     },
   },
 };
