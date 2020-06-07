@@ -50,29 +50,47 @@ const Mutation = {
     return deleted[0];
   },
   createPost(parent, args, ctx, info) {
-    const { posts } = ctx.db;
+    const { db, pubSub } = ctx;
+    const { posts, users } = db;
     const { author } = args.data;
     const userExists = users.some((user) => user.id === author);
     if (!userExists) throw new Error('User not found');
     const post = {
       id: uuidv4(),
-      published: false,
       ...args.data,
     };
     posts.push(post);
+    if (post.published) {
+      pubSub.publish('post', {
+        post: {
+          mutation: 'CREATED',
+          data: post,
+        },
+      });
+    }
     return post;
   },
   deletePost(parent, args, ctx, info) {
+    const { db, pubSub } = ctx;
     let { posts, comments } = ctx.db;
     const { id } = args;
     const postIndex = posts.findIndex((post) => post.id === id);
     if (postIndex === -1) throw new Error('Post not found');
-    const deleted = posts.splice(postIndex, 1);
+    const [deletedPost] = posts.splice(postIndex, 1);
     comments = comments.filter((comment) => comment.post !== id);
-    return deleted[0];
+    if (deletedPost.published) {
+      pubSub.publish('post', {
+        post: {
+          mutation: 'DELETED',
+          data: deletedPost,
+        },
+      });
+    }
+    return deletedPost;
   },
   createComment(parent, args, ctx, info) {
-    const { comments } = ctx.db;
+    const { db, pubSub } = ctx;
+    const { comments, users, posts } = db;
     const { author, post } = args.data;
     const userExists = users.some((user) => user.id === author);
     if (!userExists) throw new Error('User not found');
@@ -85,6 +103,12 @@ const Mutation = {
       ...args.data,
     };
     comments.push(comment);
+    pubSub.publish(`comment ${post}`, {
+      comment: {
+        mutation: 'CREATED',
+        data: comment,
+      },
+    });
     return comment;
   },
   deleteComment(parent, args, ctx, info) {
